@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="tr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Depo Stok Sistemi</title>
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Depo Stok</a>
+            </div>
+        </nav>
+
+    <div class="container my-4">
+      <!-- Carousel/Slider -->
+      {% if urunler and urunler|selectattr("4")|list|length > 0 %}
+      <div class="row mb-4">
+        <div class="col-12">
+          <div id="urunlerSlider" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+              {% for urun in urunler if urun[4] %}
+                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                  <img src="{{ url_for('static', filename=urun[4]) }}" class="d-block w-100" alt="{{ urun[1] }}" style="height: 400px; object-fit: contain;">
+                  <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50">
+                    <h5>{{ urun[1] }}</h5>
+                    <p>Stok: {{ urun[2] }} | Fiyat: {{ urun[3] if urun[3] else '-' }}₺</p>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#urunlerSlider" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Önceki</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#urunlerSlider" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Sonraki</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for msg in messages %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+              {{ msg }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Stok Görüntüle</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST">
+                                <div class="mb-3">
+                                    <label for="urun" class="form-label">Ürün Seç</label>
+                                    <select name="urun" id="urun" class="form-select">
+                                        {% for urun in urunler %}
+                                            <option value="{{ urun[0] }}">{{ urun[1] }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Göster</button>
+                            </form>
+
+                            {% if stok_bilgisi %}
+                                <hr>
+                                <h6>Ürün: <strong>{{ stok_bilgisi[0] }}</strong></h6>
+                                <p class="mb-0">Mevcut Stok: <strong>{{ stok_bilgisi[1] }}</strong></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Yeni Ürün Ekle</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="/ekle" method="POST">
+                                <div class="mb-3">
+                                    <label for="urun_adi" class="form-label">Ürün Adı</label>
+                                    <input type="text" id="urun_adi" name="urun_adi" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="stok" class="form-label">Stok</label>
+                                    <input type="number" id="stok" name="stok" class="form-control" min="0" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="birim_fiyat" class="form-label">Birim Fiyat</label>
+                                    <input type="number" id="birim_fiyat" name="birim_fiyat" class="form-control" step="0.01" min="0">
+                                </div>
+                                <button type="submit" class="btn btn-success">Ekle</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Mevcut Ürünler</h5>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                                        <tr>
+                                                            <th>ID</th>
+                                                            <th>Ürün</th>
+                                                            <th>Stok</th>
+                                                            <th>Birim Fiyat</th>
+                                                            <th>Durum</th>
+                                                        </tr>
+                                </thead>
+                                <tbody>
+                                                        {% for u in urunler %}
+                                                            <tr>
+                                                                <td>{{ u[0] }}</td>
+                                                                <td>{{ u[1] }}</td>
+                                                                <td>{{ u[2] if u|length > 2 else '-' }}</td>
+                                                                <td>{{ u[3] if u|length > 3 else '-' }}</td>
+                                                                <td>
+                                                                    <form action="/tukendi/{{ u[0] }}" method="POST" style="display:inline;">
+                                                                        <button type="submit" class="btn btn-warning btn-sm" {% if u[2] == 0 %}disabled{% endif %}>Tükendi</button>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center">Kayıtlı ürün yok.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>
